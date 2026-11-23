@@ -3,7 +3,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MATHRINA: The Haunted School</title>
   <style>
     * { box-sizing: border-box; }
@@ -11,59 +11,58 @@
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: Arial, sans-serif;
-      background: radial-gradient(circle at top, #292929, #080808 65%);
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       padding: 20px;
+      display: grid;
+      place-items: center;
+      background: #090909;
+      color: white;
+      font-family: Arial, sans-serif;
     }
 
     .container {
       width: 100%;
       max-width: 430px;
-      text-align: center;
     }
 
     h1 {
+      text-align: center;
+      letter-spacing: 4px;
       font-size: 34px;
-      letter-spacing: 3px;
       margin-bottom: 5px;
     }
 
     .subtitle {
-      color: #aaa;
-      letter-spacing: 4px;
+      text-align: center;
+      color: #999;
+      letter-spacing: 3px;
       font-size: 12px;
-      margin-bottom: 35px;
+      margin-bottom: 30px;
     }
 
     .panel {
-      background: #171717;
+      background: #181818;
       border: 1px solid #393939;
-      border-radius: 14px;
-      padding: 22px;
-      margin-bottom: 16px;
-      text-align: left;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 15px;
     }
 
     label {
       display: block;
       color: #bbb;
       font-size: 13px;
-      margin-bottom: 9px;
+      margin-bottom: 10px;
     }
 
     input {
       width: 100%;
       padding: 14px;
-      background: #090909;
-      border: 1px solid #444;
       border-radius: 8px;
+      border: 1px solid #444;
+      background: #090909;
       color: white;
       font-size: 16px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     button {
@@ -73,15 +72,14 @@
       border-radius: 8px;
       background: #8b2020;
       color: white;
-      font-size: 15px;
       font-weight: bold;
+      font-size: 15px;
       margin-top: 8px;
       cursor: pointer;
     }
 
     button.secondary {
-      background: #303030;
-      border: 1px solid #555;
+      background: #333;
     }
 
     button:disabled {
@@ -89,16 +87,34 @@
     }
 
     #status {
+      text-align: center;
       color: #aaa;
       font-size: 13px;
-      margin-top: 20px;
-      min-height: 20px;
+      margin: 18px 0;
+    }
+
+    #roomInfo {
+      display: none;
+      text-align: center;
+    }
+
+    #roomCodeDisplay {
+      font-size: 30px;
+      letter-spacing: 5px;
+      color: #e8c36a;
+      margin: 15px 0;
+    }
+
+    #playerList {
+      padding-left: 20px;
+      color: #ddd;
     }
 
     footer {
+      text-align: center;
       color: #666;
       font-size: 11px;
-      margin-top: 30px;
+      margin-top: 25px;
     }
   </style>
 </head>
@@ -110,63 +126,191 @@
 
     <section class="panel">
       <label>GUEST PLAYER</label>
-      <input id="nickname" maxlength="16" placeholder="Masukkan nickname">
-      <p style="color:#888;font-size:12px">
-        Guest ID dibuat otomatis di perangkat ini.
-      </p>
+      <input id="nickname" maxlength="16"
+        placeholder="Masukkan nickname">
+      <small id="guestInfo" style="color:#888">
+        Guest Account otomatis
+      </small>
     </section>
 
     <section class="panel">
       <label>CREATE ROOM</label>
-      <button onclick="createRoom()">CREATE ROOM</button>
+      <button id="createBtn" onclick="createRoom()">
+        CREATE ROOM
+      </button>
     </section>
 
     <section class="panel">
       <label>JOIN ROOM</label>
       <input id="roomCode" maxlength="6"
-        placeholder="Masukkan kode room">
-      <button class="secondary" onclick="joinRoom()">
+        placeholder="Kode room 6 karakter">
+      <button class="secondary" id="joinBtn"
+        onclick="joinRoom()">
         JOIN ROOM
       </button>
     </section>
 
-    <div id="status">Multiplayer server belum dihubungkan.</div>
+    <section class="panel" id="roomInfo">
+      <label>ROOM CODE</label>
+      <div id="roomCodeDisplay">------</div>
+      <button class="secondary" onclick="copyRoomCode()">
+        COPY ROOM CODE
+      </button>
+
+      <label style="margin-top:20px">PLAYERS</label>
+      <div id="playerCount">0 / 35</div>
+      <ul id="playerList"></ul>
+    </section>
+
+    <div id="status">Menghubungkan ke server...</div>
 
     <footer>
-      MATHRINA © 2026 — Multiplayer Horror Mathematics
+      MATHRINA © 2026
+      <br>Multiplayer Horror Mathematics
     </footer>
   </main>
 
+  <script src="/socket.io/socket.io.js"></script>
   <script>
     const guestKey = "mathrina_guest_id";
 
     if (!localStorage.getItem(guestKey)) {
       const id = "GUEST-" +
-        Math.random().toString(36).substring(2, 10).toUpperCase();
+        Math.random().toString(36).slice(2, 10).toUpperCase();
       localStorage.setItem(guestKey, id);
     }
 
     const guestId = localStorage.getItem(guestKey);
+    document.getElementById("guestInfo").textContent =
+      "Guest ID: " + guestId;
 
-    function createRoom() {
-      showStatus("Server multiplayer belum dipasang.");
-    }
-
-    function joinRoom() {
-      const code = document.getElementById("roomCode")
-        .value.trim().toUpperCase();
-
-      if (code.length !== 6) {
-        showStatus("Kode room harus 6 karakter.");
-        return;
-      }
-
-      showStatus("Server multiplayer belum dipasang.");
-    }
+    const socket = io();
+    let currentRoom = null;
 
     function showStatus(message) {
       document.getElementById("status").textContent = message;
     }
+
+    function getPlayerData() {
+      const nickname =
+        document.getElementById("nickname").value.trim();
+
+      if (!nickname) {
+        showStatus("Masukkan nickname terlebih dahulu.");
+        return null;
+      }
+
+      return { nickname, guestId };
+    }
+
+    socket.on("connect", () => {
+      showStatus("Terhubung ke server MATHRINA.");
+      document.getElementById("createBtn").disabled = false;
+      document.getElementById("joinBtn").disabled = false;
+    });
+
+    socket.on("disconnect", () => {
+      showStatus("Koneksi terputus. Silakan muat ulang game.");
+      document.getElementById("createBtn").disabled = true;
+      document.getElementById("joinBtn").disabled = true;
+    });
+
+    socket.on("connect_error", () => {
+      showStatus("Server belum tersedia atau belum aktif.");
+    });
+
+    function createRoom() {
+      const player = getPlayerData();
+      if (!player) return;
+
+      socket.emit("room:create", player, result => {
+        if (!result || !result.success) {
+          showStatus("Gagal membuat room.");
+          return;
+        }
+
+        showRoom(result);
+        showStatus("Room berhasil dibuat!");
+      });
+    }
+
+    function joinRoom() {
+      const player = getPlayerData();
+      if (!player) return;
+
+      const code = document.getElementById("roomCode")
+        .value.trim().toUpperCase();
+
+      if (!/^[A-HJ-NP-Z2-9]{6}$/.test(code)) {
+        showStatus("Masukkan kode room 6 karakter yang valid.");
+        return;
+      }
+
+      socket.emit("room:join", {
+        ...player,
+        code
+      }, result => {
+        if (!result || !result.success) {
+          showStatus(result?.message || "Gagal bergabung.");
+          return;
+        }
+
+        showRoom(result);
+        showStatus("Berhasil bergabung ke room!");
+      });
+    }
+
+    function showRoom(data) {
+      currentRoom = data.code;
+
+      document.getElementById("roomInfo").style.display = "block";
+      document.getElementById("roomCodeDisplay").textContent =
+        data.code;
+
+      updatePlayers(data.players || []);
+    }
+
+    function updatePlayers(players) {
+      document.getElementById("playerCount").textContent =
+        players.length + " / 35";
+
+      const list = document.getElementById("playerList");
+      list.innerHTML = "";
+
+      players.forEach(player => {
+        const item = document.createElement("li");
+        item.textContent = player.nickname;
+        list.appendChild(item);
+      });
+    }
+
+    socket.on("room:players", updatePlayers);
+
+    socket.on("room:host", data => {
+      showStatus("Host room telah berganti.");
+    });
+
+    socket.on("player:joined", player => {
+      showStatus(player.nickname + " bergabung.");
+    });
+
+    socket.on("player:left", () => {
+      showStatus("Seorang pemain keluar.");
+    });
+
+    async function copyRoomCode() {
+      if (!currentRoom) return;
+
+      try {
+        await navigator.clipboard.writeText(currentRoom);
+        showStatus("Kode room berhasil disalin!");
+      } catch {
+        showStatus("Kode room: " + currentRoom);
+      }
+    }
+
+    document.getElementById("createBtn").disabled = true;
+    document.getElementById("joinBtn").disabled = true;
   </script>
 </body>
 </html>
