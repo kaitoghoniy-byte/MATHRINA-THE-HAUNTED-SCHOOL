@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MATHRINA: The Haunted School</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #292929, #080808 65%);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 430px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 34px;
+      letter-spacing: 3px;
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      color: #aaa;
+      letter-spacing: 4px;
+      font-size: 12px;
+      margin-bottom: 35px;
+    }
+
+    .panel {
+      background: #171717;
+      border: 1px solid #393939;
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    label {
+      display: block;
+      color: #bbb;
+      font-size: 13px;
+      margin-bottom: 9px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      background: #090909;
+      border: 1px solid #444;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      margin-bottom: 14px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      border: 0;
+      border-radius: 8px;
+      background: #8b2020;
+      color: white;
+      font-size: 15px;
+      font-weight: bold;
+      margin-top: 8px;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #303030;
+      border: 1px solid #555;
+    }
+
+    button:disabled {
+      opacity: .5;
+    }
+
+    #status {
+      color: #aaa;
+      font-size: 13px;
+      margin-top: 20px;
+      min-height: 20px;
+    }
+
+    footer {
+      color: #666;
+      font-size: 11px;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <h1>MATHRINA</h1>
+    <div class="subtitle">THE HAUNTED SCHOOL</div>
+
+    <section class="panel">
+      <label>GUEST PLAYER</label>
+      <input id="nickname" maxlength="16" placeholder="Masukkan nickname">
+      <p style="color:#888;font-size:12px">
+        Guest ID dibuat otomatis di perangkat ini.
+      </p>
+    </section>
+
+    <section class="panel">
+      <label>CREATE ROOM</label>
+      <button onclick="createRoom()">CREATE ROOM</button>
+    </section>
+
+    <section class="panel">
+      <label>JOIN ROOM</label>
+      <input id="roomCode" maxlength="6"
+        placeholder="Masukkan kode room">
+      <button class="secondary" onclick="joinRoom()">
+        JOIN ROOM
+      </button>
+    </section>
+
+    <div id="status">Multiplayer server belum dihubungkan.</div>
+
+    <footer>
+      MATHRINA © 2026 — Multiplayer Horror Mathematics
+    </footer>
+  </main>
+
+  <script>
+    const guestKey = "mathrina_guest_id";
+
+    if (!localStorage.getItem(guestKey)) {
+      const id = "GUEST-" +
+        Math.random().toString(36).substring(2, 10).toUpperCase();
+      localStorage.setItem(guestKey, id);
+    }
+
+    const guestId = localStorage.getItem(guestKey);
+
+    function createRoom() {
+      showStatus("Server multiplayer belum dipasang.");
+    }
+
+    function joinRoom() {
+      const code = document.getElementById("roomCode")
+        .value.trim().toUpperCase();
+
+      if (code.length !== 6) {
+        showStatus("Kode room harus 6 karakter.");
+        return;
+      }
+
+      showStatus("Server multiplayer belum dipasang.");
+    }
+
+    function showStatus(message) {
+      document.getElementById("status").textContent = message;
+    }
+  </script>
+</body>
+</html>
